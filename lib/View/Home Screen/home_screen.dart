@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               IconButton(
                   onPressed: () {
-                    HomeScreenController.getAllContacts();
+                    HomeScreenController.removeContact(1);
                     setState(() {});
                   },
                   icon: Icon(Icons.ac_unit))
@@ -84,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: ListView.separated(
                       itemBuilder: (BuildContext context, int index) =>
                           ListTile(
+                            leading: CircleAvatar(),
                             title: Text(HomeScreenController.contactsList[index]
                                 ["name"]),
                             subtitle: Text(HomeScreenController

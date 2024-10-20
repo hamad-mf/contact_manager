@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:contact_manager/Controller/home_screen_controller.dart';
 import 'package:contact_manager/Utils/color_constants.dart';
 import 'package:contact_manager/View/Home%20Screen/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AddContacts extends StatefulWidget {
   const AddContacts({super.key});
@@ -11,11 +14,14 @@ class AddContacts extends StatefulWidget {
 }
 
 class _AddContactsState extends State<AddContacts> {
+   String? imagepath;
   @override
   Widget build(BuildContext context) {
+   
+
     TextEditingController _mobilenocontroller = TextEditingController();
     TextEditingController _namecontroller = TextEditingController();
-    TextEditingController _surnamecontroller = TextEditingController();
+    final _mobilenumKey = GlobalKey<FormState>();
     return Scaffold(
       backgroundColor: ColorConstants.primarybg,
       appBar: AppBar(
@@ -27,11 +33,17 @@ class _AddContactsState extends State<AddContacts> {
         actions: [
           IconButton(
               onPressed: () async {
-                await HomeScreenController.addContact(
-                    _namecontroller.text, _mobilenocontroller.text);
-                setState(() {});
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => HomeScreen()));
+                bool isMobilenumberValid =
+                    _mobilenumKey.currentState!.validate();
+                if (isMobilenumberValid) {
+                  await HomeScreenController.addContact(
+                      _namecontroller.text, _mobilenocontroller.text);
+                  setState(() {});
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                      (Route route) => false);
+                }
               },
               icon: Icon(Icons.save_as))
         ],
@@ -40,8 +52,43 @@ class _AddContactsState extends State<AddContacts> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
           children: [
+            Stack(children: [
+             CircleAvatar(
+  radius: 100, 
+  backgroundImage: imagepath != null ? FileImage(File(imagepath!)) : null,
+  child: imagepath == null
+      ? Icon(Icons.person, size: 50) 
+      : null,
+),
+              Positioned(
+                  right: 20,
+                  bottom: 10,
+                  child: InkWell(
+                    onTap: () async {
+                  final ImagePicker picker = ImagePicker();
+                  final XFile? upimage =
+                      await picker.pickImage(source: ImageSource.gallery);
+                  if (upimage != null) {
+                    
+                    imagepath = upimage.path;
+                  }
+                  setState(() {
+                    
+                  });
+                },
+                    child: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        child: Icon(
+                          Icons.edit,
+                          color: Colors.black,
+                        )),
+                  )),
+            ]),
+            SizedBox(
+              height: 30,
+            ),
             TextFormField(
-              controller: _mobilenocontroller,
+              controller: _namecontroller,
               decoration: InputDecoration(
                 labelText: "Name",
                 labelStyle: TextStyle(
@@ -73,76 +120,59 @@ class _AddContactsState extends State<AddContacts> {
             SizedBox(
               height: 20,
             ),
-            TextFormField(
-              controller: _namecontroller,
-              decoration: InputDecoration(
-                labelText: "Surname",
-                labelStyle: TextStyle(
-                  color: Colors.black,
-                ),
-                // floatingLabelBehavior: FloatingLabelBehavior
-                //     .always,
-                hintText: "Enter Surname",
-
-                hintStyle: TextStyle(
-                  color: Colors.grey.shade500,
-                  fontSize: 16,
-                  fontWeight: FontWeight.normal,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                    color: Colors.black,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ),
             SizedBox(
               height: 20,
             ),
-            TextFormField(
-              controller: _surnamecontroller,
-              decoration: InputDecoration(
-                labelText: "Mobile Number",
-                labelStyle: TextStyle(
-                  color: Colors.black,
-                ), // Set the label text
-                floatingLabelBehavior: FloatingLabelBehavior
-                    .always, // Ensure label is always visible
-                hintText: "10 digit mobile number",
-                prefix: Text(
-                  "+91  |  ",
-                  style: TextStyle(
+            Form(
+              key: _mobilenumKey,
+              child: TextFormField(
+                controller: _mobilenocontroller,
+                decoration: InputDecoration(
+                  labelText: "Mobile Number",
+                  labelStyle: TextStyle(
                     color: Colors.black,
-                    fontWeight: FontWeight.bold,
+                  ), // Set the label text
+                  floatingLabelBehavior: FloatingLabelBehavior
+                      .always, // Ensure label is always visible
+                  hintText: "10 digit mobile number",
+                  prefix: Text(
+                    "+91  |  ",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  hintStyle: TextStyle(
+                    color: Colors.grey.shade500,
+                    fontSize: 16,
+                    fontWeight: FontWeight.normal,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                      color: Colors.black,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                      color: Colors.black,
+                    ),
                   ),
                 ),
-                hintStyle: TextStyle(
-                  color: Colors.grey.shade500,
-                  fontSize: 16,
-                  fontWeight: FontWeight.normal,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                    color: Colors.black,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                    color: Colors.black,
-                  ),
-                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (_mobilenocontroller.text.isEmpty ||
+                      _mobilenocontroller.text.length < 10) {
+                    return "Enter a valid mobile number";
+                  } else {
+                    return null;
+                  }
+                },
               ),
-              keyboardType: TextInputType.phone,
             ),
+            
+            
           ],
         ),
       ),
